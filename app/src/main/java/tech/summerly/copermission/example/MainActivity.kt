@@ -2,11 +2,11 @@ package tech.summerly.copermission.example
 
 import android.Manifest
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import tech.summerly.copermission.requestPermission
 
 class MainActivity : AppCompatActivity() {
@@ -17,21 +17,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun requestReadPhoneState(view: View) {
-        launch {
+        lifecycleScope.launch {
             val isGranted = requestPermission(Manifest.permission.READ_PHONE_STATE)
             toast("isGranted ? : $isGranted")
         }
     }
 
     fun request2(view: View) {
-        launch {
+        lifecycleScope.launch {
             val isGranted = requestPermission(Manifest.permission.READ_PHONE_STATE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION)
             toast("isGranted ? : ${isGranted.joinToString()}")
         }
     }
 
-    private fun toast(string: String) = launch(UI) {
+    private fun toast(string: String) = lifecycleScope.launch {
         Toast.makeText(this@MainActivity, string, Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,14 +1,15 @@
 package tech.summerly.copermission
 
 import android.annotation.TargetApi
-import android.app.Activity
-import android.app.Fragment
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.suspendCancellableCoroutine
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 
 private const val TAG = "CoPermissions"
@@ -17,13 +18,13 @@ private const val TAG = "CoPermissions"
  * request permission
  * @return true: granted , false : denied
  */
-suspend fun Activity.requestPermission(permission: String): Boolean = requestPermission(permissions = *arrayOf(permission))[0]
+suspend fun AppCompatActivity.requestPermission(permission: String): Boolean = requestPermission(permissions = *arrayOf(permission))[0]
 
 /**
  * request a list of permissions ,return result array for all permissions
  */
-suspend fun Activity.requestPermission(vararg permissions: String): BooleanArray = suspendCancellableCoroutine { continuation ->
-    launch(UI) {
+suspend fun AppCompatActivity.requestPermission(vararg permissions: String): BooleanArray = suspendCancellableCoroutine { continuation ->
+    lifecycleScope.launch {
         val fragment = createPermissionFragment(this@requestPermission)
         launch {
             fragment.setPermissionResultCallback {
@@ -35,15 +36,15 @@ suspend fun Activity.requestPermission(vararg permissions: String): BooleanArray
 }
 
 //get a permission request fragment.
-private fun createPermissionFragment(activity: Activity): CoPermissionsFragment {
-    return activity.fragmentManager.findFragmentByTag(TAG) as? CoPermissionsFragment
+private fun createPermissionFragment(activity: AppCompatActivity): CoPermissionsFragment {
+    return activity.supportFragmentManager.findFragmentByTag(TAG) as? CoPermissionsFragment
             ?: CoPermissionsFragment()
             .also {
-                activity.fragmentManager
+                activity.supportFragmentManager
                         .beginTransaction()
                         .add(it, TAG)
                         .commitAllowingStateLoss()
-                activity.fragmentManager.executePendingTransactions()
+                activity.supportFragmentManager.executePendingTransactions()
             }
 }
 
@@ -62,7 +63,7 @@ internal class CoPermissionsFragment : Fragment() {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    internal fun requestPermissions(permissions: Array<String>) = launch(UI) {
+    internal fun requestPermissions(permissions: Array<String>) = lifecycleScope.launch {
         requestPermissions(permissions, PERMISSIONS_REQUEST_CODE)
     }
 
